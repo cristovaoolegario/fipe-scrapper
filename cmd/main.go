@@ -14,12 +14,12 @@ func main() {
 			Timeout: time.Duration(10) * time.Second,
 		},
 	}
-	dto, err := service.GetAllReferences()
+	dto, err := service.GetBrands(services.Car)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, item := range dto {
-		fmt.Println(item.Codigo)
+		fmt.Printf("%s - %s\n", item.Label, item.Value)
 	}
 }
