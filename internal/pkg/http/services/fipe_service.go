@@ -22,12 +22,20 @@ const (
 )
 
 type FipeService struct {
-	Client *http.Client
+	Client   *http.Client
+	Base_Url string
 }
 
-func setupRequest(resource string, data url.Values) (*http.Request, error) {
+func NewFipeService(client http.Client, base_url string) *FipeService {
+	return &FipeService{
+		Client:   &client,
+		Base_Url: base_url,
+	}
+}
+
+func (f *FipeService) setupRequest(resource string, data url.Values) (*http.Request, error) {
 	encodedData := data.Encode()
-	req, err := http.NewRequest("POST", fmt.Sprint(BASE_URL, "/api/veiculos", resource), strings.NewReader(encodedData))
+	req, err := http.NewRequest("POST", fmt.Sprint(f.Base_Url, "/api/veiculos", resource), strings.NewReader(encodedData))
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +49,7 @@ func setupRequest(resource string, data url.Values) (*http.Request, error) {
 func (f *FipeService) GetAllReferences() ([]dto.Referencia, error) {
 	responseObject := []dto.Referencia{}
 	data := url.Values{}
-	req, err := setupRequest("/ConsultarTabelaDeReferencia", data)
+	req, err := f.setupRequest("/ConsultarTabelaDeReferencia", data)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +84,7 @@ func (f *FipeService) GetBrands(vehicleType Vehicle) ([]dto.Marca, error) {
 	data.Set("codigoTipoVeiculo", fmt.Sprint(vehicleType))
 	data.Set("codigoTabelaReferencia", ltsRef)
 
-	req, err := setupRequest("/ConsultarMarcas", data)
+	req, err := f.setupRequest("/ConsultarMarcas", data)
 
 	if err != nil {
 		return nil, err

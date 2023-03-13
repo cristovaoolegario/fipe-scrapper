@@ -9,11 +9,9 @@ import (
 )
 
 func main() {
-	service := &services.FipeService{
-		Client: &http.Client{
-			Timeout: time.Duration(10) * time.Second,
-		},
-	}
+	service := services.NewFipeService(http.Client{
+		Timeout: time.Duration(10) * time.Second,
+	}, services.BASE_URL)
 	dto, err := service.GetBrands(services.Car)
 	if err != nil {
 		panic(err)
