@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -46,6 +47,16 @@ func setupDataUrl(vehicleType Vehicle, reference, brandCode, modelCode, modelYea
 	return data
 }
 
+func handleJsonBindingError(bodyBytes []byte) error {
+	errorObject := dto.FipeError{}
+	errBytes := json.Unmarshal(bodyBytes, &errorObject)
+	if errBytes != nil {
+		return errBytes
+	} else {
+		return errors.New(errorObject.Erro)
+	}
+}
+
 func (f *FipeService) setupRequest(resource string, data url.Values) ([]byte, error) {
 	encodedData := data.Encode()
 	req, err := http.NewRequest("POST", fmt.Sprint(f.Base_Url, "/api/veiculos", resource), strings.NewReader(encodedData))
@@ -74,13 +85,11 @@ func (f *FipeService) setupRequest(resource string, data url.Values) ([]byte, er
 
 func (f *FipeService) GetAllReferences() ([]dto.Referencia, error) {
 	responseObject := []dto.Referencia{}
-	bodyBytes, err := f.setupRequest("/ConsultarTabelaDeReferencia", url.Values{})
+	bodyBytes, _ := f.setupRequest("/ConsultarTabelaDeReferencia", url.Values{})
+	err := json.Unmarshal(bodyBytes, &responseObject)
 	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(bodyBytes, &responseObject)
-	if err != nil {
-		return nil, err
+		bindingError := handleJsonBindingError(bodyBytes)
+		return nil, bindingError
 	}
 	return responseObject, nil
 }

@@ -8,11 +8,12 @@ import (
 	"testing"
 )
 
+const mockError = `{"codigo": "2","erro": "Parâmetros inválidos"}`
 const mockReferences = `[{"Codigo": 295,"Mes": "março/2023 "},{"Codigo": 294,"Mes": "fevereiro/2023 "}]`
 
 func mockHandler(mockData string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mockResponse := strings.NewReader(mockReferences)
+		mockResponse := strings.NewReader(mockData)
 		byteValue, _ := ioutil.ReadAll(mockResponse)
 
 		w.Header().Add("Content-Type", "application/json")
@@ -34,6 +35,23 @@ func TestFipeService_GetAllReferences(t *testing.T) {
 			t.Errorf("Shouldn't have an error, got: %s", err)
 		}
 	})
+
+	t.Run("Should return error when response is invalid", func(t *testing.T) {
+		expected := "Parâmetros inválidos"
+		ts := httptest.NewServer(mockHandler(mockError))
+
+		defer ts.Close()
+		service := NewFipeService(http.Client{}, ts.URL)
+
+		response, err := service.GetAllReferences()
+
+		if err == nil && response != nil {
+			t.Errorf("Should have an error, got %d responses", len(response))
+		}
+		if err.Error() != expected {
+			t.Errorf("Expected: %s, got: %s", expected, err.Error())
+		}
+	})
 }
 
 func TestFipeService_GetLatestReference(t *testing.T) {
@@ -53,4 +71,22 @@ func TestFipeService_GetLatestReference(t *testing.T) {
 			t.Errorf("Expected code to be 295, got:%s", response)
 		}
 	})
+
+	t.Run("Should return error when response is invalid", func(t *testing.T) {
+		expected := "Parâmetros inválidos"
+		ts := httptest.NewServer(mockHandler(mockError))
+
+		defer ts.Close()
+		service := NewFipeService(http.Client{}, ts.URL)
+
+		response, err := service.GetLatestReference()
+
+		if err == nil && response != "" {
+			t.Errorf("Should have an error, got response: %s", response)
+		}
+		if err.Error() != expected {
+			t.Errorf("Expected: %s, got: %s", expected, err.Error())
+		}
+	})
+
 }
