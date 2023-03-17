@@ -133,5 +133,44 @@ func TestFipeService_GetBrands(t *testing.T) {
 			t.Errorf("Expected: %s, got: %s", expected, err.Error())
 		}
 	})
+}
 
+func TestFipeService_GetBrandModels(t *testing.T) {
+	t.Run("Should return All Models from Brands when the brand id is valid", func(t *testing.T) {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/api/veiculos/ConsultarTabelaDeReferencia", mockHandler(mockReferences))
+		mux.HandleFunc("/api/veiculos/ConsultarModelos", mockHandler(mockBrandsModels))
+		ts := httptest.NewServer(mux)
+
+		defer ts.Close()
+
+		service := NewFipeService(http.Client{}, ts.URL)
+
+		response, err := service.GetBrandModels(Car, "1")
+
+		if err != nil && response == nil {
+			t.Errorf("Shouldn't have an error, got: %s", err.Error())
+		}
+	})
+
+	t.Run("Should return error when response is invalid", func(t *testing.T) {
+		expected := "Parâmetros inválidos"
+		mux := http.NewServeMux()
+		mux.HandleFunc("/api/veiculos/ConsultarTabelaDeReferencia", mockHandler(mockReferences))
+		mux.HandleFunc("/api/veiculos/ConsultarModelos", mockHandler(mockError))
+		ts := httptest.NewServer(mux)
+
+		defer ts.Close()
+
+		service := NewFipeService(http.Client{}, ts.URL)
+
+		response, err := service.GetBrandModels(Car, "1")
+
+		if err == nil && response != nil {
+			t.Errorf("Should have an error, got response: %s", response.Modelos[0].Label)
+		}
+		if err.Error() != expected {
+			t.Errorf("Expected: %s, got: %s", expected, err.Error())
+		}
+	})
 }

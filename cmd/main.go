@@ -13,15 +13,28 @@ func main() {
 		Timeout: time.Duration(10) * time.Second,
 	}, services.BASE_URL)
 
-	brandsDto, _ := service.GetAllReferences()
+	references, _ := service.GetAllReferences()
 
-	for _, item := range brandsDto {
-		fmt.Printf("%s - %d", item.Mes, item.Codigo)
+	fmt.Println("\n====== Reference table ======")
+
+	for _, item := range references {
+		fmt.Printf("%s - %d\n", item.Mes, item.Codigo)
 	}
 
-	dto, _ := service.GetBrands(services.Car)
+	brandsDto, _ := service.GetBrands(services.Car)
 
-	for _, item := range dto {
+	fmt.Println("\n====== Brands table ======")
+
+	for _, item := range brandsDto {
 		fmt.Printf("%s - %s\n", item.Label, item.Value)
+	}
+
+	modelsBrands, _ := service.GetBrandModels(services.Car, brandsDto[0].Value)
+
+	fmt.Println("\n====== Models table ======")
+
+	for _, item := range modelsBrands.Modelos {
+		fmt.Printf("%s - %d\n", item.Label, item.Value)
+
 	}
 }
