@@ -114,7 +114,8 @@ func (f *FipeService) GetBrands(vehicleType Vehicle) ([]dto.Marca, error) {
 	}
 	err = json.Unmarshal(bodyBytes, &responseObject)
 	if err != nil {
-		return nil, err
+		bindingError := handleJsonBindingError(bodyBytes)
+		return nil, bindingError
 	}
 	return responseObject, nil
 }
