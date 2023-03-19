@@ -137,3 +137,23 @@ func (f *FipeService) GetBrandModels(vehicleType Vehicle, brandCode string) (*dt
 	}
 	return responseObject, nil
 }
+
+func (f *FipeService) GetBrandModelsYears(vehicleType Vehicle, brandCode string, modelCode string) ([]dto.Ano, error) {
+	ltsRef, _ := f.GetLatestReference()
+	responseObject := []dto.Ano{}
+
+	data := setupDataUrl(vehicleType, ltsRef, brandCode, modelCode, "", "")
+
+	bodyBytes, err := f.setupRequest("/ConsultarAnoModelo", data)
+
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(bodyBytes, &responseObject)
+	if err != nil {
+		bindingError := handleJsonBindingError(bodyBytes)
+		return nil, bindingError
+	}
+
+	return responseObject, nil
+}
