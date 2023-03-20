@@ -13,6 +13,7 @@ const mockReferences = `[{"Codigo": 295,"Mes": "março/2023 "},{"Codigo": 294,"M
 const mockBrands = `[{"Label": "Acura","Value": "1"},{"Label": "Agrale","Value": "2"}]`
 const mockBrandsModels = `{"Modelos":[{"Label":"116iA 1.6 TB 16V 136cv 5p","Value":6146},{"Label":"118i M Sport 1.5 TB 12V Aut. 5p","Value":9955}],"Anos":[{"Label":"32000 Gasolina","Value":"32000-1"},{"Label":"2023 Gasolina","Value":"2023-1"}]}`
 const mockModelYears = `[{"Label": "2020 Gasolina","Value": "2020-1"},{"Label": "2019 Gasolina","Value": "2019-1"}]`
+const mockVehicle = `{"Valor": "R$ 881.128,00","Marca": "BMW","Modelo": "X7 XDRIVE 50i M Sport 4.4 V8 Bi-TB Aut.","AnoModelo": 2020,"Combustivel": "Gasolina","CodigoFipe": "009250-9","MesReferencia": "fevereiro de 2023 ","Autenticacao": "cdnfntp3pqcdd6","TipoVeiculo": 1,"SiglaCombustivel": "G","DataConsulta": "sábado, 18 de março de 2023 23:15"}`
 
 func mockHandler(mockData string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -209,6 +210,46 @@ func TestFipeService_GetBrandModelYear(t *testing.T) {
 
 		if err == nil && response != nil {
 			t.Errorf("Should have an error, got response: %s", response[0].Label)
+		}
+		if err.Error() != expected {
+			t.Errorf("Expected: %s, got: %s", expected, err.Error())
+		}
+	})
+}
+
+func TestFipeService_GetVehicle(t *testing.T) {
+	t.Run("Should return All Years from Models when the brand id and model id is valid", func(t *testing.T) {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/api/veiculos/ConsultarTabelaDeReferencia", mockHandler(mockReferences))
+		mux.HandleFunc("/api/veiculos/ConsultarValorComTodosParametros", mockHandler(mockVehicle))
+		ts := httptest.NewServer(mux)
+
+		defer ts.Close()
+
+		service := NewFipeService(http.Client{}, ts.URL)
+
+		response, err := service.GetVehicle(Car, "1", "1", "2020", "1")
+
+		if err != nil && response == nil {
+			t.Errorf("Shouldn't have an error, got: %s", err.Error())
+		}
+	})
+
+	t.Run("Should return error when response is invalid", func(t *testing.T) {
+		expected := "Parâmetros inválidos"
+		mux := http.NewServeMux()
+		mux.HandleFunc("/api/veiculos/ConsultarTabelaDeReferencia", mockHandler(mockReferences))
+		mux.HandleFunc("/api/veiculos/ConsultarValorComTodosParametros", mockHandler(mockError))
+		ts := httptest.NewServer(mux)
+
+		defer ts.Close()
+
+		service := NewFipeService(http.Client{}, ts.URL)
+
+		response, err := service.GetVehicle(Car, "1", "1", "2020", "1")
+
+		if err == nil && response != nil {
+			t.Errorf("Should have an error, got response: %s", response.Modelo)
 		}
 		if err.Error() != expected {
 			t.Errorf("Expected: %s, got: %s", expected, err.Error())

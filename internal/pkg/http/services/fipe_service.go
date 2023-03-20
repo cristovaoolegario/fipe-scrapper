@@ -138,7 +138,7 @@ func (f *FipeService) GetBrandModels(vehicleType Vehicle, brandCode string) (*dt
 	return responseObject, nil
 }
 
-func (f *FipeService) GetBrandModelsYears(vehicleType Vehicle, brandCode string, modelCode string) ([]dto.Ano, error) {
+func (f *FipeService) GetBrandModelsYears(vehicleType Vehicle, brandCode, modelCode string) ([]dto.Ano, error) {
 	ltsRef, _ := f.GetLatestReference()
 	responseObject := []dto.Ano{}
 
@@ -151,6 +151,26 @@ func (f *FipeService) GetBrandModelsYears(vehicleType Vehicle, brandCode string,
 	}
 	err = json.Unmarshal(bodyBytes, &responseObject)
 	if err != nil {
+		bindingError := handleJsonBindingError(bodyBytes)
+		return nil, bindingError
+	}
+
+	return responseObject, nil
+}
+
+func (f *FipeService) GetVehicle(vehicleType Vehicle, brandCode, modelCode, modelYear, fuelType string) (*dto.Vehicle, error) {
+	ltsRef, _ := f.GetLatestReference()
+	responseObject := &dto.Vehicle{}
+
+	data := setupDataUrl(vehicleType, ltsRef, brandCode, modelCode, modelYear, fuelType)
+
+	bodyBytes, err := f.setupRequest("/ConsultarValorComTodosParametros", data)
+
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(bodyBytes, &responseObject)
+	if err == nil && responseObject.CodigoFipe == "" {
 		bindingError := handleJsonBindingError(bodyBytes)
 		return nil, bindingError
 	}
