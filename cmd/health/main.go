@@ -1,4 +1,4 @@
-package main
+package health
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/cristovaoolegario/fipe-scrapper/internal/pkg/http/services"
 )
 
-func main() {
+func CheckFipeApiHealth() {
 	var (
 		brandCode string
 		modelCode string
