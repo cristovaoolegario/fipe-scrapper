@@ -6,8 +6,6 @@ package cmd
 
 import (
 	"fmt"
-	"net/http"
-	"time"
 
 	"github.com/cristovaoolegario/fipe-scrapper/internal/pkg/http/services"
 	"github.com/spf13/cobra"
@@ -20,9 +18,7 @@ var referenceCmd = &cobra.Command{
 	Short: "Update reference in config file",
 	Long:  ``,
 	Run: func(_ *cobra.Command, _ []string) {
-		service := services.NewFipeService(http.Client{
-			Timeout: time.Duration(10) * time.Second,
-		}, services.BASE_URL)
+		service := services.ProvideDefaultService()
 
 		ref, err := service.GetLatestReference()
 

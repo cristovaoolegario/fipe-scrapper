@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cristovaoolegario/fipe-scrapper/internal/pkg/http/dto"
 )
@@ -25,6 +26,12 @@ const (
 type FipeService struct {
 	Client   *http.Client
 	Base_Url string
+}
+
+func ProvideDefaultService() *FipeService{
+	return NewFipeService(http.Client{
+		Timeout: time.Duration(10) * time.Second,
+	},BASE_URL)
 }
 
 func NewFipeService(client http.Client, base_url string) *FipeService {
